@@ -46,16 +46,24 @@ app.post("/users", cors(corsOptions), async (req, res) => {
     "insert into users (name, age, followers, verified, country) values (?, ?, ?, ?, ?)",
     [name, age, followers, verified, country]
   );
-  res.send({ message:" User added successfully." });
+  res.send({ message: " User added successfully." });
 });
 
 app.put("/users/:id", cors(corsOptions), async (req, res) => {
-    const userId = req.params["id"];
-  const { name, age, followers, verified, country} = req.body;
-  const updateUser = await pool.query('update users set name = ?, age = ?, followers = ? verified = ? country = ? where id = ?', [name, age, followers, verified, country, userId])
-  res.send({ message: "User has been updated." })
-  console.log(updateUser);
+  const userId = req.params["id"];
+  const { name, age, followers, verified, country } = req.body;
+  const updateUser = await pool.query(
+    "update users set name = ?, age = ?, followers = ?, verified = ?, country = ? where id = ?",
+    [name, age, followers, verified, country, userId]
+  );
+  res.send({ message: "User has been updated." });
 });
+
+app.delete('/users/:id', cors(corsOptions), async (req, res)=>{
+    const userId = req.params["id"];
+    const deleteUser = await pool.query('delete from users where id = ?', [userId])
+    res.send({ message: "User has been deleted."})
+})
 
 app.listen(PORT, () => {
   console.log(`Express web API running on port: ${PORT}.`);
