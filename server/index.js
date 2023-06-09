@@ -2,6 +2,7 @@ const cors = require("cors");
 const express = require("express");
 const { pool } = require("./db");
 const { body, check, param, validationResult } = require("express-validator");
+const path = require('path')
 
 const PORT = 80;
 const app = express();
@@ -16,7 +17,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static assests from the public folder
-// app.use(express.static(path.join(__dirname, "../public")));
+app.use(express.static(path.join(__dirname, "../public")));
 
 // Routes:
 
@@ -43,30 +44,36 @@ app.get(
       userId,
     ]);
     // console.log(userRow)
-    userRow[0] ? res.send(userRow) : res.status(404).send({ message: 'User not found.'});
+    userRow[0]
+      ? res.send(userRow)
+      : res.status(404).send({ message: "User not found." });
   }
 );
 
-
 app.get("/users", cors(corsOptions), async (req, res) => {
   const userName = req.query["name"];
-  const userAge = req.query['age'];
-  const [nameRow] = await pool.query("select * from users where name = ? AND age = ?", [
-    userName, userAge
-  ]);
+  const userAge = req.query["age"];
+  const [nameRow] = await pool.query(
+    "select * from users where name = ? AND age = ?",
+    [userName, userAge]
+  );
   // console.log(nameRow)
-  nameRow[0] ? res.send(nameRow) : res.status(404).send({ message: 'User not found.'});
+  nameRow[0]
+    ? res.send(nameRow)
+    : res.status(404).send({ message: "User not found." });
 });
 
 app.post("/users", cors(corsOptions), async (req, res) => {
   const { name, age, followers, verified, country } = req.body;
-//   console.log(req.body)
+  //   console.log(req.body)
   const [newUserRow] = await pool.query(
     "insert into users (name, age, followers, verified, country) values (?, ?, ?, ?, ?)",
     [name, age, followers, verified, country]
   );
-//   console.log(newUserRow)
-  newUserRow ? res.send({ message: " User added successfully." }) : res.status(400).send({ message: 'Unable to add new user.'});
+  //   console.log(newUserRow)
+  newUserRow
+    ? res.send({ message: " User added successfully." })
+    : res.status(400).send({ message: "Unable to add new user." });
 });
 
 app.put("/users/:id", cors(corsOptions), async (req, res) => {
@@ -76,7 +83,9 @@ app.put("/users/:id", cors(corsOptions), async (req, res) => {
     "update users set name = ?, age = ?, followers = ?, verified = ?, country = ? where id = ?",
     [name, age, followers, verified, country, userId]
   );
-  updateUser ? res.status(200).send({ message: "User updated successfully." }) : res.status(400).send({ message: 'Unable to update user.'});
+  updateUser
+    ? res.status(200).send({ message: "User updated successfully." })
+    : res.status(400).send({ message: "Unable to update user." });
 });
 
 app.delete("/users/:id", cors(corsOptions), async (req, res) => {
@@ -84,10 +93,11 @@ app.delete("/users/:id", cors(corsOptions), async (req, res) => {
   const deleteUser = await pool.query("delete from users where id = ?", [
     userId,
   ]);
-  console.log(deleteUser)
-  deleteUser ? res.status(200).send({ message: "User deleted successfully." }) : res.status(404).send({ message: "User not found."});
+  console.log(deleteUser);
+  (deleteUser.ResultSetHeader?.affectedRows === 0)
+    ? res.status(200).send({ message: "User deleted successfully." })
+    : res.status(404).send({ message: "User not found." });
 });
-
 
 app.listen(PORT, () => {
   console.log(`Express web API running on port: ${PORT}.`);
